@@ -8,7 +8,7 @@ export class Aluno {
     /* Id do aluno */
     private idAluno: number = 0;
     /* ra do aluno */
-    private ra: string;
+    private ra: string = '';
     /* Nome do aluno */
     private nome: string;
     /* Sobrenome do aluno */
@@ -35,7 +35,6 @@ export class Aluno {
      */
 
     constructor(
-        ra: string,
         nome: string,
         sobrenome: string,
         dataNascimento: Date,
