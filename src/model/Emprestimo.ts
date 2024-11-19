@@ -1,3 +1,7 @@
+import { DatabaseModel } from "./DatebaseModel";
+
+const database = new DatabaseModel().pool;
+
 /**
  * Classe que representa um empréstimo
  */
@@ -139,4 +143,88 @@ export class Emprestimo {
         this.statusEmprestimo = statusEmprestimo;
     }
 
+*/*
+    * @returns {Promise<Array<Aluno> | null>} Retorna uma lista de objetos `emprestimo` 
+    * em caso de sucesso, ou `null` em caso de erro.
+    */
+    static async listarEmprestimo(): Promise<Array<Emprestimo> | null> {
+        //criando lista vazia para armazenar os alunos
+        let listaDeEmprestimo: Array<Emprestimo> = [];
+
+        try {
+            //QUERY PARA CONSULTA NO BANCO DE DADOS
+            const querySelectEmprestimo = `SELECT * FROM Emprestimo;`;
+
+            //EXECUTA A QUERY NO BANCO DE DADOS
+            const respostaBD = await database.query(querySelectEmprestimo);
+
+            //PERCORRE CADA RESULTADO RETORNADO PELO BANCO DE DADOS
+            //CARRO É O APELIDO QUE DEMOS PARA CADA LINHA RETPRNADO DO BANCO DE DADOS
+
+            //CRIANDO OBJETO ALUNO
+            respostaBD.rows.forEach((emprestimo) => {
+                let novaEmprestimo = new emprestimo(
+                    emprestimo.idAluno,
+                    emprestimo.idLivro,
+                    emprestimo.dataEmprestimo,
+                    emprestimo.dataDevolucao,
+                    emprestimo.statusEmprestimo,
+    
+                );
+                // adicionando o ID ao objeto
+                novaEmprestimo.setIdAluno(emprestimo.id_aluno);
+
+                //adicionando o aluno na lista
+                listaDeEmprestimo.push(novaEmprestimo);
+            });
+
+            return listaDeEmprestimo;
+
+        } catch (error) {
+            console.log(`Erro ao acessar o idLivro : ${error}`);
+            return null;
+        }
+    }
+
+     /**
+     
+     * 
+     * @param {Emprestimo} emprestimo .
+     * @returns {Promise<boolean>} 
+     * @throws {Error} - Se ocorrer algum erro durante a execução do cadastro, uma mensagem de erro é exibida
+     *                   no console junto com os detalhes do erro.
+     */
+     static async cadastroEmprestimo(emprestimo: Emprestimo): Promise<boolean> {
+        try {
+            // query para fazer insert de um carro no banco de dados
+            const queryInsertEmprestimo = `INSERT INTO emprestimo (idAluno, idLivro, dataEmprestimo,dataDevolucao, statusEmprestimo)
+                                        VALUES
+                                        ('${emprestimo.getIdAluno()}', 
+                                        '${emprestimo.getIdLivro()}', 
+                                        ${emprestimo.getDataEmprestimo()}, 
+                                        '${emprestimo.getDataDevolucao()}')
+                                        RETURNING id_aluno;`;
+
+            // executa a query no banco e armazena a resposta
+            const respostaBD = await database.query(queryInsertEmprestimo);
+
+            // verifica se a quantidade de linhas modificadas é diferente de 0
+            if (respostaBD.rowCount != 0) {
+                console.log(`Emprestimo cadastrado com sucesso! ID do Aluno: ${respostaBD.rows[0].id_aluno}`);
+                // true significa que o cadastro foi feito
+                return true;
+            }
+            // false significa que o cadastro NÃO foi feito.
+            return false;
+
+            // tratando o erro
+        } catch (error) {
+            // imprime outra mensagem junto com o erro
+            console.log('Erro ao cadastrar o emprestimo. Verifique os logs para mais detalhes.');
+            // imprime o erro no console
+            console.log(error);
+            // retorno um valor falso
+            return false;
+        }
+    }
 }
