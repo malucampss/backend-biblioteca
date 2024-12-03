@@ -239,13 +239,14 @@ export class Livro {
 
         try {
             // query de consulta ao banco de dados
-            const querySelectLivro = `SELECT * FROM livro`;
+            const querySelectLivro = `SELECT * FROM livro;`;
 
             // fazendo a consulta e guardando a resposta
             const respostaBD = await database.query(querySelectLivro);
 
             // usando a resposta para instanciar um objeto do tipo Livro
-            respostaBD.rows.forEach((linha) => {
+            respostaBD.rows.forEach((linha: { titulo: string; autor: string; editora: string; ano_publicacao: string; isbn: string; quant_total: number; quant_disponivel: number; valor_aquisicao: number; status_livro_emprestado: string; id_livro: number; }) => {
+        
                 // instancia (cria) objeto Livro
                 const novoLivro = new Livro(
                     linha.titulo,
@@ -328,4 +329,56 @@ export class Livro {
             return false;
         }
     }
+
+
+    static async removerLivro(idLivro: number): Promise<boolean> {
+        try{
+            const queryDeleteLivro = `DELETE FROM livro WHERE id_livro = ${idLivro}`;
+            const respostaDB = await database.query(queryDeleteLivro);
+
+            if(respostaDB.rowCount != 0){
+                console.log(`Livro removido com sucesso. ID removido: ${idLivro}`);
+                return true;
+            }
+            return false;
+
+        } catch (error) {
+            console.log(`Erro ao remover livro. Verifique os logs para mais detalhes.`);
+            console.log(error);
+            return false;
+        }
+    }
+
+    static async atualizarLivro(livro:Livro): Promise<boolean> {
+        try{
+            const queryUpdateLivro = `UPDATE Livro SET
+                                      titulo  = '${livro.getTitulo()}',
+                                      editora = '${livro.getEditora()}',
+                                      anoPublicacao = '${livro.getAnoPublicacao()}',
+                                      isbn ='${livro.getIsbn()}',
+                                      quantTotal = '${livro.getQuantTotal()}',
+                                      quantDisponivel = '${livro.getQuantDisponivel()}',
+                                      valorAquisicao = '${livro.getValorAquisicao()}'
+                                      WHERE id_livro = ${livro.getIdLivro()};`;
+
+            console.log(queryUpdateLivro);
+
+          const respostaBD = await database.query(queryUpdateLivro);
+          if(respostaBD.rowCount != 0){
+            console.log(`Livro atualizado com sucesso! ID:${livro.getIdLivro()}`);
+            return true;
+          }             
+          
+          return false;
+        } catch (error) {
+            console.log(`Erro ao atualizar o livro. Verifique os logs para mais detalhes.`);
+            console.log(error);
+            return false;
+        }
+    }
+
+
+
+
+
 }

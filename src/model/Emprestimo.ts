@@ -227,4 +227,36 @@ export class Emprestimo {
             return false;
         }
     }
+
+    static async atualizarEmprestimo(emprestimo:Emprestimo): Promise<boolean> {
+        try{
+            const queryUpdateEmprestimo = `UPDATE Emprestimo SET
+                                      IdAluno  = '${emprestimo.getIdAluno()}',
+                                      IdLivro = '${emprestimo.getIdLivro()}',
+                                      DataEmprestimo = ${emprestimo.getDataEmprestimo()},
+                                      DataDevolucao = '${emprestimo.getDataDevolucao()}'
+                                      WHERE id_emprestimo = ${emprestimo.getIdAluno()};`;
+
+            console.log(queryUpdateEmprestimo);
+
+          const respostaBD = await database.query(queryUpdateEmprestimo);
+          if(respostaBD.rowCount != 0){
+            console.log(`Emprestimo atualizado com sucesso! ID:${emprestimo.getIdAluno()}`);
+            return true;
+          }             
+          
+          return false;
+        } catch (error) {
+            console.log(`Erro ao atualizar o emprestimo. Verifique os logs para mais detalhes.`);
+            console.log(error);
+            return false;
+        }
+    }
+
+
+
+
+
+
+
 }

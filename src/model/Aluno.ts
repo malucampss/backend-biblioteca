@@ -43,7 +43,6 @@ export class Aluno {
         email:string,
         celular: string,
     ) {
-        this.ra = ra;
         this.nome = nome;
         this.sobrenome= sobrenome;
         this.dataNascimento = dataNascimento;
@@ -196,7 +195,7 @@ export class Aluno {
     * @returns {Promise<Array<Aluno> | null>} Retorna uma lista de objetos `Carro` 
     * em caso de sucesso, ou `null` em caso de erro.
     */
-    static async listarCarro(): Promise<Array<Aluno> | null> {
+    static async listarAlunos(): Promise<Array<Aluno> | null> {
         //criando lista vazia para armazenar os alunos
         let listaDeAlunos: Array<Aluno> = [];
 
@@ -211,17 +210,17 @@ export class Aluno {
             //CARRO É O APELIDO QUE DEMOS PARA CADA LINHA RETPRNADO DO BANCO DE DADOS
 
             //CRIANDO OBJETO ALUNO
-            respostaBD.rows.forEach((aluno) => {
-                let novaAluno = new aluno(
-                    aluno.nome,
-                    aluno.sobrenome,
-                    aluno.dataNascimento,
-                    aluno.endereco,
-                    aluno.email,
-                    aluno.celular
+            respostaBD.rows.forEach((linha: { nome: string; sobrenome: string; dataNascimento: Date; endereco: string; email: string; celular: string; id_aluno: number; }) => {
+                let novaAluno = new Aluno(
+                    linha.nome,
+                    linha.sobrenome,
+                    linha.dataNascimento,
+                    linha.endereco,
+                    linha.email,
+                    linha.celular
                 );
                 // adicionando o ID ao objeto
-                novaAluno.setIdAluno(aluno.id_aluno);
+                novaAluno.setIdAluno(linha.id_aluno);
 
                 //adicionando o aluno na lista
                 listaDeAlunos.push(novaAluno);
@@ -278,4 +277,53 @@ export class Aluno {
             return false;
         }
     }
+
+
+    static async removerAluno(idAluno: number): Promise<boolean> {
+        try{
+            const queryDeleteAluno = `DELETE FROM aluno WHERE id_aluno = ${idAluno}`;
+            const respostaDB = await database.query(queryDeleteAluno);
+
+            if(respostaDB.rowCount != 0){
+                console.log(`Aluno removido com sucesso. ID removido: ${idAluno}`);
+                return true;
+            }
+            return false;
+
+        } catch (error) {
+            console.log(`Erro ao remover aluno. Verifique os logs para mais detalhes.`);
+            console.log(error);
+            return false;
+        }
+    }
+
+    static async atualizarAluno(aluno:Aluno): Promise<boolean> {
+        try{
+            const queryUpdateAluno = `UPDATE Aluno SET
+                                      nome  = '${aluno.getNome()}',
+                                      sobrenome = '${aluno.getSobrenome()}',
+                                      dataNascimento = ${aluno.getdataNascimento()},
+                                      endereco ='${aluno.getEndereco()}',
+                                      email = '${aluno.getEmail}',
+                                      celular = '${aluno.getCelular}'
+                                      WHERE id_aluno = ${aluno.getIdAluno()};`;
+
+            console.log(queryUpdateAluno);
+
+          const respostaBD = await database.query(queryUpdateAluno);
+          if(respostaBD.rowCount != 0){
+            console.log(`Aluno atualizado com sucesso! ID:${aluno.getIdAluno()}`);
+            return true;
+          }             
+          
+          return false;
+        } catch (error) {
+            console.log(`Erro ao atualizar o aluno. Verifique os logs para mais detalhes.`);
+            console.log(error);
+            return false;
+        }
+    }
+
+
+
 }
